@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bms-app
+  namespace: default
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: bms
+
+  template:
+    metadata:
+      labels:
+        app: bms
+
+    spec:
+      containers:
+      - name: bms
+
+        image: devaayan/bms-app:latest
+
+        ports:
+        - containerPort: 3000
