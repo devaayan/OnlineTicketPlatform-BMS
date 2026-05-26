@@ -1,0 +1,9 @@
+- hosts: eks
+
+  tasks:
+
+    - name: Deploy Deployment File
+      shell: kubectl apply -f deployment.yaml
+
+    - name: Deploy Service File
+      shell: kubectl apply -f service.yaml
