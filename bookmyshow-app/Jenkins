@@ -1,0 +1,71 @@
+pipeline {
+
+    agent any
+
+    environment {
+        IMAGE_NAME = "devaayan/bms-app:latest"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/staragile2016/OnlineTicketPlatform-BMS.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir('bookmyshow-app') {
+                    sh 'npm install --legacy-peer-deps'
+                }
+            }
+        }
+
+        stage('Build Application') {
+            steps {
+                dir('bookmyshow-app') {
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                dir('bookmyshow-app') {
+                    sh 'docker build -t bms-app .'
+                }
+            }
+        }
+
+        stage('Docker Tag') {
+            steps {
+                sh 'docker tag bms-app $IMAGE_NAME'
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+
+                    sh 'docker push $IMAGE_NAME'
+                }
+            }
+        }
+
+        stage('Deploy Using Ansible') {
+            steps {
+                dir('bookmyshow-app') {
+                    sh 'ansible-playbook -i inventory deploy.yml'
+                }
+            }
+        }
+    }
+}
